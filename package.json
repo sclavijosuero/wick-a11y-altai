@@ -1,0 +1,49 @@
+{
+  "name": "wick-a11y-altai",
+  "version": "1.0.0",
+  "description": "AI-assisted a11y for text alternatives — multi-provider (Gemini, Groq, OpenAI). Image-first, extensible by design.",
+  "main": "src/altai.js",
+  "type": "module",
+  "types": "src/types.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sclavijosuero/wick-a11y-altai.git"
+  },
+  "keywords": [
+    "accessibility",
+    "a11y",
+    "wcag",
+    "cypress",
+    "testing",
+    "alt-text",
+    "alt",
+    "text-alternative",
+    "image-accessibility",
+    "screen-reader",
+    "assistive-technology",
+    "ai",
+    "llm",
+    "vision",
+    "gemini",
+    "groq",
+    "openai",
+    "automation"
+  ],
+  "author": "Sebastian Clavijo Suero",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sclavijosuero/wick-a11y-altait/issues"
+  },
+  "homepage": "https://github.com/sclavijosuero/wick-a11y-altai#readme",
+  "devDependencies": {
+    "cypress": "^15.7.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@google/genai": "^1.41.0",
+    "openai": "^6.22.0"
+  }
+}
