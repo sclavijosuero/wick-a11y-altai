@@ -35,17 +35,19 @@ Cypress plugin that analyzes images and their context using AI to recommend the 
 
 | Area | Supported |
 |------|-----------|
-| **Cypress** | 15.7.0+ (tested with `^15.7.0`) |
-| **Node** | 18+ (required by Cypress 15) |
+| **Node** | 18+ |
 | **AI models** | See below |
+| **Cypress** | 15.7.0+ (tested with `^15.7.0`) - Only to run the Cypress test in the package|
 
-### AI models supported (current) - Some other models are also supported but they were not tested
+### AI models supported (current)
 
 - **OpenAI** — `gpt-4o-mini` (default), `gpt-4o` 
 - **Google AI (Gemini)** — `gemini-2.5-flash` (default), `gemini-2.5-pro`, `gemini-3-flash-preview`
 - **Groq (Llama vision)** — `meta-llama/llama-4-scout-17b-16e-instruct` (default), `meta-llama/llama-4-maverick-17b-128e-instruct`
 
 You can override the default model via the `overrides` parameter when calling each provider’s API.
+
+> Some other models are also supported but they were not tested,
 
 
 ## Installation and Configuration
