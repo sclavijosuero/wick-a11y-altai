@@ -28,12 +28,24 @@ Cypress plugin that analyzes images and their context using AI to recommend the 
 
 ✔️ JSON output for easy automation + CI
 
-✔️ Works standalone or plugged into wick-a11y
+✔️ Works standalone (integration also with wick-a11y is planned for the future)
 
 
 ## Compatibility
 
-[...]
+| Area | Supported |
+|------|-----------|
+| **Cypress** | 15.7.0+ (tested with `^15.7.0`) |
+| **Node** | 18+ (required by Cypress 15) |
+| **AI models** | See below |
+
+### AI models supported (current) - Some other models are also supported but they were not tested
+
+- **OpenAI** — `gpt-4o-mini` (default), `gpt-4o` 
+- **Google AI (Gemini)** — `gemini-2.5-flash` (default), `gemini-2.5-pro`, `gemini-3-flash-preview`
+- **Groq (Llama vision)** — `meta-llama/llama-4-scout-17b-16e-instruct` (default), `meta-llama/llama-4-maverick-17b-128e-instruct`
+
+You can override the default model via the `overrides` parameter when calling each provider’s API.
 
 
 ## Installation and Configuration
@@ -44,7 +56,7 @@ Cypress plugin that analyzes images and their context using AI to recommend the 
     npm wick-a11y-altai
     ```
 
-2. **Import the package in your tests**:
+2. **Import the package** in your tests:
 
     ```js
     import 'wick-a11y-altai';
