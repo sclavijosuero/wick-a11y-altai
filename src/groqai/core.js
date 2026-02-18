@@ -3,7 +3,6 @@ import { OpenAI } from "openai";
 import { computeAltTextOpenAI } from '../openai/core';
 import { printResult } from '../utils';
 
-const GROQ_AI_API_KEY = Cypress.env('GROQ_AI_API_KEY')
 
 const models = {
     groqAIOpenAI: { // Groq Compatible API with OpenAI
@@ -25,10 +24,14 @@ export async function getImageAltTextGroqAIOpenAI(input, overrides = {}) {
     // AI model to use
     const aiModel = models.groqAIOpenAI;
 
+    if (!overrides.apiKey) {
+        return { error: 'GROQ AI APIKEY is required' };
+    }
+
     // Google AI client
     const aiInstance = new OpenAI({
         baseURL: aiModel.baseURL,
-        apiKey: GROQ_AI_API_KEY,
+        apiKey: overrides.apiKey,
         dangerouslyAllowBrowser: true, // Enable. Disabled by default, as it risks exposing your secret API credentials to attackers (https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety)
     });
 

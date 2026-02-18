@@ -1,15 +1,16 @@
 import { DEFAULT_IMAGE_TRANSPORT, DEFAULT_RESPONSE_MIME_TYPE } from './constants-enum';
-    
+
 // ***********************************************************************
 // Public Helper Functions - Generic
 // ***********************************************************************
 
-
+// Get prompt for image alt text adding context and code
 export const getPrompt = (prompt, context, code) => {
     prompt = addContextToPrompt(prompt, context);
     return addCodeToPrompt(prompt, code);
 }
 
+// Ensure each sentence ends with a period (easier to read for screen readers)
 export const ensureSentenceEndsWithPeriod = (info) => {
     if (!info || typeof info !== "object") return info;
     for (const key of Object.keys(info)) {
@@ -23,26 +24,21 @@ export const ensureSentenceEndsWithPeriod = (info) => {
     return info;
 }
 
+// Print result to terminal console
 export const printResult = (result, title) => {
     const resultTitle = '-------------- RESULTS FOR ' + title + ' --------------'
-    
+
     console.log(resultTitle);
     console.log(result);
-  
-    // cy.log(resultTitle);
-    // cy.log('Model: "' + result.model + '"');
-    // cy.log('Image transport: "' + result.imageTransport + '"');
-    // cy.log('Tokens used: ' + result.tokens);
-    // cy.log('Total time (ms): ' + result.totalTime);
-    // cy.log('Alternative text: ' + JSON.stringify(result.info));
-  }
-  
+}
+
 
 
 // ***********************************************************************
 // Public Helper Functions - Image related
 // ***********************************************************************
 
+// Normalize inputs: convert string to object with imageUrl and imageTransport
 export const normalizeInputs = (input) => {
     if (typeof input === "string" && input.trim() !== "") {
         return { imageUrl: input, imageTransport: DEFAULT_IMAGE_TRANSPORT };
@@ -52,6 +48,7 @@ export const normalizeInputs = (input) => {
     return { error: "Invalid input" };
 }
 
+// Normalize model options: combine all keys from aiModel and overrides
 export const normalizeModelOptions = (aiModel, overrides = {}) => {
     const result = {};
     // Combine all keys from aiModel and overrides
@@ -70,6 +67,7 @@ export const normalizeModelOptions = (aiModel, overrides = {}) => {
     return result;
 }
 
+// Convert image URL to base64
 export async function imageUrlToBase64(imageUrl) {
     const response = await fetch(imageUrl);
     const imageArrayBuffer = await response.arrayBuffer();
@@ -84,6 +82,7 @@ export async function imageUrlToBase64(imageUrl) {
 // Private Helper functions
 // ***********************************************************************
 
+// Add context to prompt
 const addContextToPrompt = (prompt, context) => {
     const CONTEXT = (typeof context === "string" && context.trim())
         ? `Context:
@@ -92,6 +91,7 @@ const addContextToPrompt = (prompt, context) => {
     return prompt.replace("{{CONTEXT}}", CONTEXT);
 }
 
+// Add code to prompt
 const addCodeToPrompt = (prompt, code) => {
     const CODE = (typeof code === "string" && code.trim())
         ? `Code:
@@ -100,6 +100,8 @@ const addCodeToPrompt = (prompt, code) => {
     return prompt.replace("{{CODE}}", CODE);
 }
 
+
+// Get MIME type from image URL extension
 const getMimeTypeFromUrl = (imageUrl) => {
     const extension = imageUrl.split('.').pop().toLowerCase().split(/\#|\?/)[0];
     switch (extension) {

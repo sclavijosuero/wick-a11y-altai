@@ -5,8 +5,6 @@ import { PROMPT_ALT_TEXT_IMAGE } from '../prompts';
 
 import { DEFAULT_IMAGE_TRANSPORT, DEFAULT_RESPONSE_MIME_TYPE } from '../constants-enum';
 
-const GOOGLE_AI_API_KEY = Cypress.env('GOOGLE_AI_API_KEY')
-
 
 // Supported models for Google AI
 const models = {
@@ -45,8 +43,14 @@ const models = {
 export async function getImageAltTextGoogleAI(input, overrides = {}) {
   // AI model to use
   const aiModel = models.googleAIGemini;
+
+
+  if (!overrides.apiKey) {
+    return { error: 'GOOGLE AI APIKEY is required' };
+  }
+
   // Google AI client
-  const aiInstance = new GoogleGenAI({ apiKey: GOOGLE_AI_API_KEY });
+  const aiInstance = new GoogleGenAI({ apiKey: overrides.apiKey });
 
   // Normalize AI model options
   const modelOptions = normalizeModelOptions(aiModel, overrides);

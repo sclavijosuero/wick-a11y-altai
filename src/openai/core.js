@@ -5,7 +5,6 @@ import { PROMPT_ALT_TEXT_IMAGE } from '../prompts';
 
 import { DEFAULT_IMAGE_TRANSPORT } from '../constants-enum';
 
-const OPENAI_API_KEY = Cypress.env('OPENAI_API_KEY')
 
 const models = {
     openAI: {
@@ -21,8 +20,12 @@ const models = {
 export async function getImageAltTextOpenAI(input, overrides = {}) {
     const aiModel = models.openAI;
 
+    if (!overrides.apiKey) {
+        return { error: 'OPENAI APIKEY is required' };
+    }
+
     const aiInstance = new OpenAI({
-        apiKey: OPENAI_API_KEY,
+        apiKey: overrides.apiKey,
         dangerouslyAllowBrowser: true,
     });
 
