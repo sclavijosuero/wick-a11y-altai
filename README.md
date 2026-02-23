@@ -48,9 +48,13 @@ Override the default model via the `overrides` parameter when calling each provi
 npm install wick-a11y-altai
 ```
 
+You must supply your own API keys for the provider(s) you use (see [Configuration](#configuration)).
+
 ## Configuration
 
 ### Environment variables (API keys)
+
+> **You must bring your own API keys.** This plugin does not include or provide any keys. Obtain keys from each provider you use (Google AI, Groq, OpenAI, Fireworks AI) and set them as environment variables. Do not commit keys to version control.
 
 | Env var | Required for | Description |
 |---------|----------------|-------------|
@@ -59,7 +63,7 @@ npm install wick-a11y-altai
 | `OPENAI_API_KEY`    | OpenAI            | [OpenAI API keys](https://platform.openai.com/api-keys) |
 | `FIREWORKS_AI_API_KEY` | Fireworks AI   | [Fireworks AI](https://fireworks.ai/) |
 
-Set these in your shell, `.env`, or (for Cypress) in `cypress.env.json` (see [Cypress usage](#in-cypress)).
+Set them as environment variables (e.g. in your shell, in a `.env` file, or in your CI secrets). When using Cypress, you can also use `cypress.env.json` (see [Cypress usage](#in-cypress)).
 
 ### Cypress: wire the task (optional)
 
