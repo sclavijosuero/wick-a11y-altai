@@ -36,7 +36,7 @@ Framework-agnostic library that analyzes images and their context using AI to re
 ### AI models supported (current)
 
 - **Google AI (Gemini)** — `gemini-2.5-flash` (default), `gemini-2.5-flash-lite`, `gemini-2.5-pro`
-- **Groq (Llama vision)** — `meta-llama/llama-4-scout-17b-16e-instruct` (default), `meta-llama/llama-4-maverick-17b-128e-instruct`
+- **Groq AI** — `meta-llama/llama-4-scout-17b-16e-instruct` (default), `meta-llama/llama-4-maverick-17b-128e-instruct`
 - **OpenAI** — `gpt-4o-mini` (default), `gpt-4o`
 - **Fireworks AI** — `accounts/fireworks/models/qwen2p5-vl-7b-instruct` (default), `accounts/fireworks/models/kimi-k2p5`, `accounts/fireworks/models/phi-3-vision-128k-instruct`
 
@@ -145,11 +145,11 @@ import { getImageAltText } from 'wick-a11y-altai/run';
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `provider` | `string` | Yes | Name of the function exported from the main package — Currently: `'getImageAltTextGoogleAI'`, `'getImageAltTextGroqAIOpenAI'`, `'getImageAltTextOpenAI'`, `'getImageAltTextFireworksAIOpenAI'`. |
+| `provider` | `string` | Yes | Name of the function for the selected provider, exported from the main package — Currently: `'getImageAltTextGoogleAI'`, `'getImageAltTextGroqAIOpenAI'`, `'getImageAltTextOpenAI'`, `'getImageAltTextFireworksAIOpenAI'`. |
 | `input` | `object` | Yes | `{ imageUrl, context?, code?, imageTransport? }`. |
 | `overrides` | `object` | No | Provider options (e.g. `model`, `apiKey`). |
 
-**Returns:** `Promise<AltTextResult>` — Same shape as the provider functions, or `{ error: string }` if `provider` is unknown.
+**Returns:** `Promise` — Same shape as the provider functions, or `{ error: string }` if `provider` is unknown.
 
 **Example (Node / Playwright):**
 
