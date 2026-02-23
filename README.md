@@ -38,7 +38,7 @@ Framework-agnostic library that analyzes images and their context using AI to re
 - **Google AI (Gemini)** — `gemini-2.5-flash` (default), `gemini-2.5-flash-lite`, `gemini-2.5-pro`
 - **Groq (Llama vision)** — `meta-llama/llama-4-scout-17b-16e-instruct` (default), `meta-llama/llama-4-maverick-17b-128e-instruct`
 - **OpenAI** — `gpt-4o-mini` (default), `gpt-4o`
-- **Fireworks AI** — `accounts/fireworks/models/qwen2p5-vl-7b-instruct`, `accounts/fireworks/models/kimi-k2p5`, `accounts/fireworks/models/phi-3-vision-128k-instruct`
+- **Fireworks AI** — `accounts/fireworks/models/qwen2p5-vl-7b-instruct` (default), `accounts/fireworks/models/kimi-k2p5`, `accounts/fireworks/models/phi-3-vision-128k-instruct`
 
 Override the default model via the `overrides` parameter when calling each provider.
 
@@ -145,7 +145,7 @@ import { getImageAltText } from 'wick-a11y-altai/run';
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `provider` | `string` | Yes | Name of the function exported from the main package, e.g. `'getImageAltTextGoogleAI'`, `'getImageAltTextFireworksAIOpenAI'`. |
+| `provider` | `string` | Yes | Name of the function exported from the main package — Currently: `'getImageAltTextGoogleAI'`, `'getImageAltTextGroqAIOpenAI'`, `'getImageAltTextOpenAI'`, `'getImageAltTextFireworksAIOpenAI'`. |
 | `input` | `object` | Yes | `{ imageUrl, context?, code?, imageTransport? }`. |
 | `overrides` | `object` | No | Provider options (e.g. `model`, `apiKey`). |
 
@@ -208,6 +208,40 @@ cy.task(
     provider: 'getImageAltTextGoogleAI',
     input: { imageUrl, context, code, imageTransport: 'url' },
     overrides: { model: 'gemini-2.5-flash', apiKey: GOOGLE_AI_API_KEY },
+  },
+  { timeout: 30000 }
+).then((result) => {
+  if (result?.error) throw new Error(result.error);
+  cy.log('Alt recommendation:', JSON.stringify(result.info));
+});
+```
+
+**Example: Groq AI**
+
+```js
+cy.task(
+  'getImageAltText',
+  {
+    provider: 'getImageAltTextGroqAIOpenAI',
+    input: { imageUrl, context, code, imageTransport: 'url' },
+    overrides: { model: 'meta-llama/llama-4-scout-17b-16e-instruct', apiKey: Cypress.env('GROQ_AI_API_KEY') },
+  },
+  { timeout: 30000 }
+).then((result) => {
+  if (result?.error) throw new Error(result.error);
+  cy.log('Alt recommendation:', JSON.stringify(result.info));
+});
+```
+
+**Example: OpenAI**
+
+```js
+cy.task(
+  'getImageAltText',
+  {
+    provider: 'getImageAltTextOpenAI',
+    input: { imageUrl, context, code, imageTransport: 'url' },
+    overrides: { model: 'gpt-4o-mini', apiKey: Cypress.env('OPENAI_API_KEY') },
   },
   { timeout: 30000 }
 ).then((result) => {
