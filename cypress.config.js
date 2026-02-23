@@ -1,6 +1,5 @@
 const { defineConfig } = require("cypress");
-
-// const addAcmeTasks = require('./src/tasks.js');
+const altaiRun = import("./src/run.js");
 
 module.exports = defineConfig({
   viewportWidth: 1920,
@@ -14,11 +13,17 @@ module.exports = defineConfig({
 
   e2e: {
     setupNodeEvents(on, config) {
-
-      return config;
+      return altaiRun.then((m) => {
+        on("task", {
+          getImageAltText(payload) {
+            return m.getImageAltText(payload.provider, payload.input, payload.overrides ?? {});
+          },
+        });
+        return config;
+      });
     },
 
-    specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
+    specPattern: 'cypress/e2e/**/*.cy.{js,jsx}',
     baseUrl: 'https://sclavijosuero.github.io',
   },
 });

@@ -13,9 +13,6 @@
 // https://on.cypress.io/configuration
 // ***********************************************************
 
-// Import the cypress-flaky-test-audit plugin
-import '../../src/altai.js'
-
 // Import commands.js using ES2015 syntax:
 import './commands'
 

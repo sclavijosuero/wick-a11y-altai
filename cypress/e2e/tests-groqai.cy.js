@@ -1,38 +1,30 @@
 // ***********************************************************************
 // GROQ AI TESTS
 // ***********************************************************************
+// Uses cy.task() so the API call runs in Node (avoids CORS/connection errors in browser).
 
-import { getImageAltTextGroqAIOpenAI, getImageAltTextOpenAI } from '../../src/altai.js'; //  Groq AI using OpenAI API compatible with Groq
-const GROQ_AI_API_KEY = Cypress.env('GROQ_AI_API_KEY')
+const GROQ_AI_API_KEY = Cypress.env('GROQ_AI_API_KEY');
 
-describe('Example 2: Groq AI with OpenAI compatible tests', () => {
-  it('Example 2.1: Should access an url image and analyze it', () => {
-
+describe('SUITE 2: Groq AI with OpenAI compatible tests', () => {
+  it('Example 2 (Groq AI - OpenAI compatible) - Should analyze an image and provide an alt text', () => {
+    
     // Inputs
-    // ------
-    const imageUrl = `https://www.shutterstock.com/image-photo/sun-sets-behind-mountain-ranges-600w-2479236003.jpg`
-    const context = `The images are in a web page for billing and payments.` // With this context the model will be more accurate in describing the image and might set alt="" and decorative_reason instead like "The image is a decorative landscape photo unrelated to the billing and payments context.""
-    const code = ``
+    const imageUrl = `https://www.shutterstock.com/image-photo/sun-sets-behind-mountain-ranges-600w-2479236003.jpg`;
+    const context = `The images are in a web page for billing and payments.`;
+    const code = ``;
 
-    // Overrides
-    // ---------
-    const imageTransport = "url"  // For public sites
-    // const imageTransport = "base64"  // For private sites behind authentication
+    const imageTransport = "url";
+    // const imageTransport = "base64"
 
-    const model = "meta-llama/llama-4-scout-17b-16e-instruct"  // Faster and few tokens
-    // const model = "meta-llama/llama-4-maverick-17b-128e-instruct"
+    const model = "meta-llama/llama-4-scout-17b-16e-instruct";
+    // const model = "meta-llama/llama-4-maverick-17b-128e-instruct";
 
+    const input = { imageUrl, context, code, imageTransport };
+    const overrides = { model, apiKey: GROQ_AI_API_KEY };
 
-    // Call Groq AI (Using OpenAI API)
-    // -------------------------------
-    cy.wrap(getImageAltTextGroqAIOpenAI({ imageUrl, context, code, imageTransport }, { model, apiKey: GROQ_AI_API_KEY }), { timeout: 20000, log: false })
+    cy.task('getImageAltText', { provider: 'getImageAltTextGroqAIOpenAI', input, overrides }, { timeout: 30000 })
       .then((result) => {
-        cy.log('*************** RESULTS FOR Groq AI (using OpenAI API) ***************');
-        cy.log('Model: "' + result.model + '"');
-        cy.log('Image transport: "' + result.imageTransport + '"');
-        cy.log('Tokens used: ' + result.tokens);
-        cy.log('Total time (ms): ' + result.totalTime);
-        cy.log('Alternative text: ' + JSON.stringify(result.info));
+        cy.logAltTextResultsForImage(result);
       });
   });
 });

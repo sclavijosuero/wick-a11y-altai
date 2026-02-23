@@ -1,4 +1,15 @@
-import { DEFAULT_IMAGE_TRANSPORT, DEFAULT_RESPONSE_MIME_TYPE } from './constants-enum';
+// ***********************************************************************
+// Public Constants
+// ***********************************************************************
+
+export const IMAGE_TRANSPORT = Object.freeze({
+    URL: "url",
+    BASE64: "base64"
+});
+
+export const DEFAULT_IMAGE_TRANSPORT = IMAGE_TRANSPORT.URL;
+
+export const DEFAULT_RESPONSE_MIME_TYPE = "application/json";
 
 // ***********************************************************************
 // Public Helper Functions - Generic

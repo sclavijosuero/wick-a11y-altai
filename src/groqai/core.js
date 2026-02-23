@@ -32,7 +32,7 @@ export async function getImageAltTextGroqAIOpenAI(input, overrides = {}) {
     const aiInstance = new OpenAI({
         baseURL: aiModel.baseURL,
         apiKey: overrides.apiKey,
-        dangerouslyAllowBrowser: true, // Enable. Disabled by default, as it risks exposing your secret API credentials to attackers (https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety)
+        // dangerouslyAllowBrowser: true, // Enable. Disabled by default, as it risks exposing your secret API credentials to attackers (https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety)
     });
 
     const result = await computeAltTextOpenAI(aiModel, aiInstance, input, overrides);

@@ -1,9 +1,8 @@
 # wick-a11y-altai
 
-Cypress plugin that analyzes images and their context using AI to recommend the most appropriate text alternative for screen readers—whether that is meaningful alt text or alt="" when the image is purely decorative. It supports multiple providers out of the box (Gemini, Groq, OpenAI) and can run standalone or as an add-on to wick-a11y. The first release focuses on images; the architecture leaves room to expand to other “text alternative” checks in the future.
+Framework-agnostic library that analyzes images and their context using AI to recommend the most appropriate text alternative for screen readers—meaningful alt text or `alt=""` when the image is purely decorative. Use it as a **library** in Node, Playwright, or other JS packages, or wire it into **Cypress** via a task so API calls run in Node (no CORS). Multiple providers: **Google AI (Gemini)**, **Groq**, **OpenAI**, **Fireworks AI**.
 
 ![Animated demo of ... in action](assets/overview.gif)
-
 
 ## Table of Contents
 
@@ -17,132 +16,146 @@ Cypress plugin that analyzes images and their context using AI to recommend the 
 - [Contributing](#contributing)
 - [Changelog](#changelog)
 
-
 ## Main Features
 
-✔️ Multi-provider: Gemini / Groq / OpenAI
-
-✔️ URL or base64 image input
-
-✔️ Context-aware: decides if the image is meaningful vs decorative (alt="")
-
-✔️ JSON output for easy automation + CI
-
-✔️ Works standalone (integration also with wick-a11y is planned for the future)
-
+✔️ **Framework-agnostic** — Use as a library (`wick-a11y-altai` or `wick-a11y-altai/run`) or plug into Cypress/Playwright  
+✔️ **Multi-provider** — Google AI (Gemini), Groq, OpenAI, Fireworks AI  
+✔️ **URL or base64** image input  
+✔️ **Context-aware** — Decides meaningful vs decorative (`alt=""`)  
+✔️ **JSON output** for automation and CI  
+✔️ **Cypress** — Optional task so AI runs in Node (avoids CORS)
 
 ## Compatibility
 
 | Area | Supported |
-|------|-----------|
+|------|------------|
 | **Node** | 18+ |
 | **AI models** | See below |
-| **Cypress** | 15.7.0+ (tested with `^15.7.0`) - Only to run the Cypress test in the package|
+| **Cypress** | 15.7.0+ (optional; only if you use the Cypress task) |
 
 ### AI models supported (current)
 
-- **OpenAI** — `gpt-4o-mini` (default), `gpt-4o` 
-- **Google AI (Gemini)** — `gemini-2.5-flash` (default), `gemini-2.5-pro`, `gemini-3-flash-preview`
+- **Google AI (Gemini)** — `gemini-2.5-flash` (default), `gemini-2.5-flash-lite`, `gemini-2.5-pro`
 - **Groq (Llama vision)** — `meta-llama/llama-4-scout-17b-16e-instruct` (default), `meta-llama/llama-4-maverick-17b-128e-instruct`
+- **OpenAI** — `gpt-4o-mini` (default), `gpt-4o`
+- **Fireworks AI** — `accounts/fireworks/models/qwen2p5-vl-7b-instruct`, `accounts/fireworks/models/kimi-k2p5`, `accounts/fireworks/models/phi-3-vision-128k-instruct`
 
-You can override the default model via the `overrides` parameter when calling each provider’s API.
+Override the default model via the `overrides` parameter when calling each provider.
 
-> Some other models are also supported but they were not tested,
+## Installation
 
+```bash
+npm install wick-a11y-altai
+```
 
-## Installation and Configuration
+## Configuration
 
-1. **Install plugin** in the project:
+### Environment variables (API keys)
 
-    ```bash
-    npm wick-a11y-altai
-    ```
+| Env var | Required for | Description |
+|---------|----------------|-------------|
+| `GOOGLE_AI_API_KEY` | Google AI (Gemini) | [Google AI Studio](https://aistudio.google.com/apikey) |
+| `GROQ_AI_API_KEY`   | Groq              | [Groq Console](https://console.groq.com/) |
+| `OPENAI_API_KEY`    | OpenAI            | [OpenAI API keys](https://platform.openai.com/api-keys) |
+| `FIREWORKS_AI_API_KEY` | Fireworks AI   | [Fireworks AI](https://fireworks.ai/) |
 
-2. **Import the package** in your tests:
+Set these in your shell, `.env`, or (for Cypress) in `cypress.env.json` (see [Cypress usage](#in-cypress)).
 
-    ```js
-    import 'wick-a11y-altai';
-    ```
-    
-    > If you are using this in a Cypress project, you can import it in the `cypress/support/e2e.js` file or directly in your test file.
+### Cypress: wire the task (optional)
 
-3. **Configure environment variables**:
+If you use Cypress and want `cy.task('getImageAltText', ...)` so the AI call runs in **Node** (avoids CORS), register the task in `cypress.config.js`:
 
-    | Env var                       | Type                   | Default   | Description                                                         |
-    |-------------------------------|------------------------|-----------|---------------------------------------------------------------------|
-    | `GOOGLE_AI_API_KEY`           | `string`               |     -     | (Required) Google AI API key for LLM workflows.                     |
-    | `GROQ_AI_API_KEY`             | `string`               |     -     | (Required) Groq AI API key for LLM workflows.                       |
-    | `OPENAI_API_KEY`              | `string`               |     -     | (Required) OpenAI API key for LLM workflows.                        |
+```js
+const { defineConfig } = require("cypress");
+// In a project that has wick-a11y-altai installed:
+const altaiRun = import("wick-a11y-altai/run");
+// When developing this repo: import("./src/run.js")
 
-    > If you are using this in a Cypress project, set these keys in your `cypress.env.json` file.
-    >
-    >Example `cypress.env.json`:
-    >
-    >```json
-    >{
-    >  "GOOGLE_AI_API_KEY": "<Your Google AI API key>",
-    >  "GROQ_AI_API_KEY": "<Your Groq AI API key>",
-    >  "OPENAI_API_KEY": "<Your OpenAI API key>"
-    >}
-    >```
-
+module.exports = defineConfig({
+  e2e: {
+    setupNodeEvents(on, config) {
+      return altaiRun.then((m) => {
+        on("task", {
+          getImageAltText(payload) {
+            return m.getImageAltText(payload.provider, payload.input, payload.overrides ?? {});
+          },
+        });
+        return config;
+      });
+    },
+  },
+});
+```
 
 ## API
 
-These functions are the public entry points for using wick-a11y-altai as a plugin in other projects. Each returns AI-generated alt-text recommendations (or an error) and supports the same input shape.
+Two ways to call the providers:
 
-**Import from the package:**
+1. **Direct provider functions** — Import from `wick-a11y-altai` and call e.g. `getImageAltTextGoogleAI(input, overrides)`.
+2. **Unified runner** — Import `getImageAltText` from `wick-a11y-altai/run` and call `getImageAltText(provider, input, overrides)`. Use this in Node, Playwright, or as the implementation of a Cypress task.
+
+---
+
+### Entry: `wick-a11y-altai` (providers)
+
+**Import:**
 
 ```js
 import {
   getImageAltTextGoogleAI,
   getImageAltTextGroqAIOpenAI,
   getImageAltTextOpenAI,
+  getImageAltTextFireworksAIOpenAI,
 } from 'wick-a11y-altai';
 ```
 
----
+| Function | Provider | API key env |
+|----------|----------|-------------|
+| `getImageAltTextGoogleAI(input, overrides?)` | Google AI (Gemini) | `GOOGLE_AI_API_KEY` |
+| `getImageAltTextGroqAIOpenAI(input, overrides?)` | Groq | `GROQ_AI_API_KEY` |
+| `getImageAltTextOpenAI(input, overrides?)` | OpenAI | `OPENAI_API_KEY` |
+| `getImageAltTextFireworksAIOpenAI(input, overrides?)` | Fireworks AI | `FIREWORKS_AI_API_KEY` |
 
-### `getImageAltTextGoogleAI(input, overrides?)`
+**Parameters:**
 
-Uses **Google AI (Gemini)** to analyze an image and suggest alt text. Requires `GOOGLE_AI_API_KEY` in your environment (e.g. Cypress `env` or `process.env`).
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `input` | `string` or `object` | Yes | Image URL string, or object: `{ imageUrl, context?, code?, imageTransport? }`. |
+| `overrides` | `object` | No | Model options: `model`, `apiKey`, and provider-specific fields (e.g. `temperature`, `max_completion_tokens`). |
 
-| Parameter   | Type   | Required | Description |
-|------------|--------|----------|-------------|
-| `input`    | `string` or `object` | Yes | Image URL string, or an object (see [Input shape](#input-shape)). |
-| `overrides`| `object` | No  | Optional model options: `model`, `role`, `temperature`, `maxOutputTokens`, `responseMimeType`. |
-
-**Returns:** `Promise<AltTextResult>` — On success: `{ model, tokens, totalTime, info, imageTransport }`. On validation error: `{ error: string }`.
-
----
-
-### `getImageAltTextGroqAIOpenAI(input, overrides?)`
-
-Uses **Groq** (OpenAI-compatible API) to analyze an image and suggest alt text. Requires `GROQ_AI_API_KEY` in your environment.
-
-| Parameter   | Type   | Required | Description |
-|------------|--------|----------|-------------|
-| `input`    | `string` or `object` | Yes | Image URL string, or an object (see [Input shape](#input-shape)). |
-| `overrides`| `object` | No  | Optional model options: `model`, `role`, `temperature`, `max_completion_tokens`, `response_format`, `baseURL`. |
-
-**Returns:** `Promise<AltTextResult>` — Same shape as `getImageAltTextGoogleAI`.
-
-> ⚠️ In this initial version, the OpenAI instance is created with `dangerouslyAllowBrowser: true` enabled.
+**Returns:** `Promise<AltTextResult>` — On success: `{ model, tokens, totalTime, info, imageTransport }`. On error: `{ error: string }`.
 
 ---
 
-### `getImageAltTextOpenAI(input, overrides?)`
+### Entry: `wick-a11y-altai/run` (unified runner)
 
-Uses **OpenAI** to analyze an image and suggest alt text. Requires `OPENAI_API_KEY` in your environment.
+Use this in Node, Playwright, or to implement a Cypress task. Runs the chosen provider in Node (no browser CORS).
 
-| Parameter   | Type   | Required | Description |
-|------------|--------|----------|-------------|
-| `input`    | `string` or `object` | Yes | Image URL string, or an object (see [Input shape](#input-shape)). |
-| `overrides`| `object` | No  | Optional model options: `model`, `role`, `temperature`, `max_completion_tokens`, `response_format`. |
+**Import:**
 
-**Returns:** `Promise<AltTextResult>` — Same shape as `getImageAltTextGoogleAI`.
+```js
+import { getImageAltText } from 'wick-a11y-altai/run';
+```
 
-> ⚠️ In this initial version, the OpenAI instance is created with `dangerouslyAllowBrowser: true` enabled.
+**`getImageAltText(provider, input, overrides?)`**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `provider` | `string` | Yes | Name of the function exported from the main package, e.g. `'getImageAltTextGoogleAI'`, `'getImageAltTextFireworksAIOpenAI'`. |
+| `input` | `object` | Yes | `{ imageUrl, context?, code?, imageTransport? }`. |
+| `overrides` | `object` | No | Provider options (e.g. `model`, `apiKey`). |
+
+**Returns:** `Promise<AltTextResult>` — Same shape as the provider functions, or `{ error: string }` if `provider` is unknown.
+
+**Example (Node / Playwright):**
+
+```js
+const result = await getImageAltText(
+  'getImageAltTextGoogleAI',
+  { imageUrl: 'https://example.com/hero.png', context: 'Hero on pricing page', imageTransport: 'url' },
+  { apiKey: process.env.GOOGLE_AI_API_KEY, model: 'gemini-2.5-flash' }
+);
+```
 
 ---
 
@@ -150,156 +163,128 @@ Uses **OpenAI** to analyze an image and suggest alt text. Requires `OPENAI_API_K
 
 `input` can be:
 
-- **String:** A single image URL.  
-  Example: `"https://example.com/image.jpg"`
-
-- **Object:** More control over context and transport:
+- **String** — A single image URL. Example: `"https://example.com/image.jpg"`
+- **Object** — More control:
   - `imageUrl` (string, required) — Image URL.
-  - `context` (string, optional) — Surrounding page/section context for the model.
-  - `code` (string, optional) — HTML/snippet context (e.g. the `<img>` or parent markup).
-  - `imageTransport` (`'url'` \| `'base64'`, optional) — Send the image by URL or as base64; default is provider-specific.
-
-Example:
-
-```js
-await getImageAltTextOpenAI({
-  imageUrl: 'https://example.com/hero.png',
-  context: 'Hero banner on the pricing page',
-  code: '<img src="hero.png" />',
-});
-```
+  - `context` (string, optional) — Page/section context for the model.
+  - `code` (string, optional) — HTML/snippet (e.g. the `<img>` markup).
+  - `imageTransport` (`'url'` | `'base64'`, optional) — Send image by URL or base64; default `'url'`.
 
 ---
 
 ### Result shape
 
 - **Success:** `{ info, model, tokens, totalTime, imageTransport }`
-  - **`info`** — Parsed JSON from the model, matching the shape requested by the alt-text prompt:
-    - **`alt`** (string, required) — Recommended alternative text. May be `""` for decorative images.
-    - **`decorative_reason`** (string, optional) — Short explanation when the image is decorative (present when `alt === ""`).
-    - **`long_description`** (array of strings, optional) — For complex images (chart, infographic, map, diagram): 3–8 bullet-style strings summarizing key data, trends, or labels.
-    - **`confidence`** (string, optional) — One of `"low"`, `"medium"`, or `"high"`. Indicates how confident the model is in the recommendation; if purpose is unclear, the model returns a descriptive alt and `confidence: "low"`.
-  - **`model`** (string) — Identifier of the AI model used (e.g. `gpt-4o-mini`, `gemini-2.5-flash`).
-  - **`tokens`** (number) — Total tokens consumed for the request (input + output).
-  - **`totalTime`** (number) — Elapsed time in milliseconds from request start to response.
-  - **`imageTransport`** (`'url'` | `'base64'`) — How the image was sent to the API (URL or base64).
-- **Error (e.g. invalid input):** `{ error: "<message>" }`
-
+  - **`info`** — Parsed JSON from the model:
+    - **`alt`** (string) — Recommended alternative text; may be `""` for decorative images.
+    - **`decorative_reason`** (string, optional) — When `alt === ""`, short explanation.
+    - **`long_description`** (array of strings, optional) — For complex images (chart, map, diagram).
+    - **`confidence`** (string, optional) — `"low"` | `"medium"` | `"high"`.
+  - **`model`** (string) — Model used (e.g. `gemini-2.5-flash`).
+  - **`tokens`** (number) — Tokens consumed.
+  - **`totalTime`** (number) — Elapsed time in milliseconds.
+  - **`imageTransport`** — `'url'` or `'base64'`.
+- **Error:** `{ error: "<message>" }`
 
 ## Usage
 
-wick-a11y-altai is a **framework-agnostic** package: each API function returns a **Promise**, so you can use it from Cypress, Node scripts, or any other tool that supports async/await or Promises. The examples below show Cypress (e2e) and standalone usage.
+### In Cypress
 
----
-
-### In Cypress (e2e)
-
-Import the provider you need, call it with an image URL (or an input object), and wrap the Promise in `cy.wrap()` so Cypress waits for the result. Use a generous timeout because the AI call can take several seconds.
+1. Wire the task in `cypress.config.js` as in [Configuration](#cypress-wire-the-task-optional).
+2. In tests, call the task with the provider name and pass API key via `overrides` (or from `Cypress.env()`).
 
 **Example: Google AI (Gemini)**
 
 ```js
-import { getImageAltTextGoogleAI } from 'wick-a11y-altai';
+const GOOGLE_AI_API_KEY = Cypress.env('GOOGLE_AI_API_KEY');
 
-it('gets alt text for an image', () => {
-  const imageUrl = 'https://example.com/image.jpg';
-  const context = 'Hero image on the billing page';
-  const imageTransport = 'url'; // or 'base64'
-
-  cy.wrap(
-    getImageAltTextGoogleAI(
-      { imageUrl, context, imageTransport },
-      { model: 'gemini-2.5-flash' }
-    ),
-    { timeout: 20000, log: false }
-  ).then((result) => {
-    if (result.error) throw new Error(result.error);
-    cy.log('Alt recommendation:', JSON.stringify(result.info));
-    // result: { model, tokens, totalTime, info, imageTransport }
-  });
-});
-```
-
-**Example: Groq AI (OpenAI-compatible API)**
-
-```js
-import { getImageAltTextGroqAIOpenAI } from 'wick-a11y-altai';
-
-cy.wrap(
-  getImageAltTextGroqAIOpenAI(
-    { imageUrl, context, code, imageTransport },
-    { model: 'meta-llama/llama-4-scout-17b-16e-instruct' }
-  ),
-  { timeout: 20000, log: false }
+cy.task(
+  'getImageAltText',
+  {
+    provider: 'getImageAltTextGoogleAI',
+    input: { imageUrl, context, code, imageTransport: 'url' },
+    overrides: { model: 'gemini-2.5-flash', apiKey: GOOGLE_AI_API_KEY },
+  },
+  { timeout: 30000 }
 ).then((result) => {
-  if (result.error) throw new Error(result.error);
+  if (result?.error) throw new Error(result.error);
   cy.log('Alt recommendation:', JSON.stringify(result.info));
 });
 ```
 
-**Example: OpenAI**
+**Example: Fireworks AI**
 
 ```js
-import { getImageAltTextOpenAI } from 'wick-a11y-altai';
-
-cy.wrap(getImageAltTextOpenAI(imageUrl), { timeout: 20000, log: false })
-  .then((result) => {
-    if (result.error) throw new Error(result.error);
-    cy.log('Alt recommendation:', result.info);
-  });
+cy.task(
+  'getImageAltText',
+  {
+    provider: 'getImageAltTextFireworksAIOpenAI',
+    input: { imageUrl, context, code, imageTransport: 'url' },
+    overrides: { model: 'accounts/fireworks/models/kimi-k2p5', apiKey: Cypress.env('FIREWORKS_AI_API_KEY') },
+  },
+  { timeout: 30000 }
+).then((result) => {
+  if (result?.error) throw new Error(result.error);
+  cy.log('Alt recommendation:', JSON.stringify(result.info));
+});
 ```
 
-In Cypress, set `GOOGLE_AI_API_KEY`, `GROQ_AI_API_KEY`, and/or `OPENAI_API_KEY` in `cypress.env.json` (see [Configuration](#installation-and-configuration)).
+**Cypress env example** (`cypress.env.json`):
 
----
+```json
+{
+  "GOOGLE_AI_API_KEY": "<your-key>",
+  "GROQ_AI_API_KEY": "<your-key>",
+  "OPENAI_API_KEY": "<your-key>",
+  "FIREWORKS_AI_API_KEY": "<your-key>"
+}
+```
 
-### Standalone (Node or other tools)
+### As a library (Node, Playwright, scripts)
 
-Use the same imports and call the functions with `await`. Ensure the required API key(s) are set in your environment (e.g. `process.env`) for the provider(s) you use.
+Use the **unified runner** so the call runs in Node (no browser):
 
 ```js
-import {
-  getImageAltTextGoogleAI,
-  getImageAltTextGroqAIOpenAI,
-  getImageAltTextOpenAI,
-} from 'wick-a11y-altai';
+import { getImageAltText } from 'wick-a11y-altai/run';
 
-// Simple: URL only
-const result = await getImageAltTextOpenAI('https://example.com/photo.jpg');
-if (result.error) console.error(result.error);
-else console.log(result.info);
-
-// With context and model override
-const result2 = await getImageAltTextGoogleAI(
+const result = await getImageAltText(
+  'getImageAltTextGoogleAI',
   {
     imageUrl: 'https://example.com/banner.png',
-    context: 'Decorative banner on the pricing page',
-    imageTransport: 'base64',
+    context: 'Decorative banner on pricing page',
+    imageTransport: 'url',
   },
-  { model: 'gemini-2.5-pro' }
+  { apiKey: process.env.GOOGLE_AI_API_KEY, model: 'gemini-2.5-flash' }
 );
-console.log(result2.info);
+
+if (result.error) console.error(result.error);
+else console.log(result.info);
 ```
 
-You can use these functions in Node scripts, CI jobs, or other test runners (e.g. Jest, Mocha) the same way.
+Or call a **provider directly** from the main package:
 
+```js
+import { getImageAltTextGoogleAI } from 'wick-a11y-altai';
+
+const result = await getImageAltTextGoogleAI(
+  { imageUrl: 'https://example.com/photo.jpg', context: 'Hero image' },
+  { model: 'gemini-2.5-flash' }
+);
+```
 
 ## License
 
 Released under the [MIT License](LICENSE).
 
-
 ## Contributing
 
-Contributions are welcome! If you find a bug or want to propose an improvement:
+Contributions are welcome:
 
 1. Open an issue describing the motivation and expected behavior.
 2. Fork the repo and create a branch: `git checkout -b feat/my-improvement`.
-3. Run the Cypress suite you care about with the audit enabled to validate changes.
-4. Submit a PR referencing the issue. Please include screenshots of the report if the UI changes.
-
+3. Run the Cypress suite to validate changes.
+4. Submit a PR referencing the issue.
 
 ## Changelog
 
-- **1.0.0** – Initial release.
-
+- **1.0.0** – Initial release. Framework-agnostic library; optional Cypress task; providers: Google AI, Groq, OpenAI, Fireworks AI.

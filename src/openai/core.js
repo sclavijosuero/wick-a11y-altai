@@ -3,7 +3,7 @@ import { OpenAI } from "openai";
 import { getPrompt, normalizeModelOptions, normalizeInputs, ensureSentenceEndsWithPeriod, imageUrlToBase64, printResult } from '../utils';
 import { PROMPT_ALT_TEXT_IMAGE } from '../prompts';
 
-import { DEFAULT_IMAGE_TRANSPORT } from '../constants-enum';
+import { DEFAULT_IMAGE_TRANSPORT } from '../utils';
 
 
 const models = {
@@ -26,7 +26,7 @@ export async function getImageAltTextOpenAI(input, overrides = {}) {
 
     const aiInstance = new OpenAI({
         apiKey: overrides.apiKey,
-        dangerouslyAllowBrowser: true,
+        // dangerouslyAllowBrowser: true,
     });
 
     const result = await computeAltTextOpenAI(aiModel, aiInstance, input, overrides);
@@ -36,7 +36,7 @@ export async function getImageAltTextOpenAI(input, overrides = {}) {
 }
 
 
-// To be used by getImageAltTextOpenAI and getImageAltTextGroqAIOpenAI
+// To be used by getImageAltTextOpenAI, getImageAltTextGroqAIOpenAI, and getImageAltTextFireworksAIOpenAI
 export async function computeAltTextOpenAI(aiModel, aiInstance, input, overrides = {}) {
     // Normalize AI model options
     const modelOptions = normalizeModelOptions(aiModel, overrides);

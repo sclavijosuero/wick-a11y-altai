@@ -3,10 +3,21 @@ import { GoogleGenAI } from "@google/genai";
 import { getPrompt, normalizeModelOptions, normalizeInputs, ensureSentenceEndsWithPeriod, imageUrlToBase64, printResult } from '../utils';
 import { PROMPT_ALT_TEXT_IMAGE } from '../prompts';
 
-import { DEFAULT_IMAGE_TRANSPORT, DEFAULT_RESPONSE_MIME_TYPE } from '../constants-enum';
+import { DEFAULT_IMAGE_TRANSPORT, DEFAULT_RESPONSE_MIME_TYPE } from '../utils';
 
 
-// Supported models for Google AI
+
+// Models Available for Google AI GEmini (Free Tier)
+//  - Gemini 2.5 Flash (gemini-2.5-flash): A fast, versatile, and multimodal model.
+//  - Gemini 2.5 Flash-Lite (gemini-2.5-flash-lite): A model designed for speed and cost-efficiency.
+// Does not seem included in the free tier:
+//  - Gemini 2.5 Pro (gemini-2.5-pro): A model for complex reasoning, coding, and large-scale, multimodal tasks. It has a 1 million token context window.
+//  - Gemini 2.0 Flash (gemini-2.0-flash): A high-performance, cost-effective model for general tasks.
+//  - Gemini 2.5 Flash Image (gemini-2.5-flash-image): Optimized for multi-image fusion and creative tasks.
+//  - Gemini 2.5 Flash Native Audio (Live API): Supports low-latency, real-time voice and video interactions.
+//  - Experimental/Preview Models: Preview versions of newer models, such as Gemini 3.1 Pro Preview and Gemini 3 Pro, are sometimes available for testing. 
+
+// Default configuration
 const models = {
   googleAIGemini: {
     model: 'gemini-2.5-flash', // Relativelly fast model
